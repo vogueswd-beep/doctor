@@ -169,15 +169,17 @@ export default function RegisterForm() {
 
   if (state.status === "success") {
     return (
-      <div className="fade-in overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl shadow-amber-900/5 dark:border-amber-500/20 dark:bg-gradient-to-br dark:from-zinc-900/80 dark:to-zinc-950/80 dark:shadow-amber-900/10 backdrop-blur-xl">
-        <Image
-          src="/imges/3.png"
-          alt="Thank you - your presence will make this occasion even more memorable"
-          width={2400}
-          height={600}
-          className="h-auto w-full"
-        />
-        <div className="p-8 text-center">
+      <div className="fade-in">
+        <div className="mb-6 overflow-hidden rounded-2xl shadow-lg shadow-amber-900/10 dark:shadow-amber-900/20">
+          <Image
+            src="/imges/3.png"
+            alt="Thank you - your presence will make this occasion even more memorable"
+            width={2400}
+            height={600}
+            className="h-auto w-full"
+          />
+        </div>
+        <div className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 to-yellow-100 ring-1 ring-amber-200 success-pulse dark:from-amber-500/20 dark:to-yellow-600/20 dark:ring-amber-500/30">
             <svg
               className="h-7 w-7 text-amber-600 dark:text-amber-400"
@@ -201,10 +203,7 @@ export default function RegisterForm() {
   }
 
   return (
-    <form
-      action={formAction}
-      className="fade-in space-y-5 rounded-2xl border border-zinc-200 bg-white p-8 shadow-2xl shadow-zinc-200/50 dark:border-white/[0.06] dark:bg-gradient-to-br dark:from-zinc-900/80 dark:to-zinc-950/80 dark:shadow-2xl dark:shadow-amber-900/10 backdrop-blur-xl"
-    >
+    <form action={formAction} className="fade-in space-y-5">
       {state.status === "error" && !state.fieldErrors && (
         <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-500/20 dark:bg-red-500/5 dark:text-red-300">
           <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -294,7 +293,7 @@ export default function RegisterForm() {
             type="tel"
             required
             autoComplete="tel"
-            placeholder="+94 7X XXX XXXX"
+            placeholder="0777777777"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className={`${inputBase} ${
