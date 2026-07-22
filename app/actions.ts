@@ -5,19 +5,13 @@ import clientPromise, {
   ENTRIES_COLLECTION,
   ensureEntryIndexes,
 } from "@/lib/mongodb";
+import { EMAIL_RE, PHONE_RE, normalizePhone } from "@/lib/validation";
 
 export type RegisterState = {
   status: "idle" | "success" | "error";
   message: string;
   fieldErrors?: Partial<Record<"name" | "email" | "phone", string>>;
 };
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^[0-9+\-\s()]{7,20}$/;
-
-function normalizePhone(phone: string) {
-  return phone.replace(/[^\d+]/g, "");
-}
 
 export async function registerEntry(
   _prevState: RegisterState,

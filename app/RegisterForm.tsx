@@ -1,18 +1,54 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { registerEntry, type RegisterState } from "./actions";
+import { EMAIL_RE, PHONE_RE } from "@/lib/validation";
 
 const initialState: RegisterState = { status: "idle", message: "" };
 
-function SubmitButton() {
+type FieldStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+
+function useAvailabilityCheck(field: "email" | "phone", value: string): FieldStatus {
+  const trimmed = value.trim();
+  const formatValid = trimmed !== "" && (field === "email" ? EMAIL_RE.test(value) : PHONE_RE.test(value));
+
+  const [result, setResult] = useState<{ value: string; available: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!formatValid) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      fetch(`/api/check-availability?field=${field}&value=${encodeURIComponent(value)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => res.json())
+        .then((data) => setResult({ value, available: Boolean(data.available) }))
+        .catch(() => {
+          // Aborted or network error: leave previous result as-is.
+        });
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [field, value, formatValid]);
+
+  if (!trimmed) return "idle";
+  if (!formatValid) return "invalid";
+  if (result && result.value === value) return result.available ? "available" : "taken";
+  return "checking";
+}
+
+function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="group relative mt-2 w-full overflow-hidden rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 px-6 py-4 text-[15px] font-bold tracking-wide text-black shadow-lg shadow-amber-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
     >
       <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
@@ -59,8 +95,34 @@ function FieldIcon({ type }: { type: "name" | "email" | "phone" }) {
   );
 }
 
+function StatusIndicator({ status }: { status: FieldStatus }) {
+  if (status === "checking") {
+    return (
+      <svg className="h-4 w-4 animate-spin text-zinc-400" viewBox="0 0 24 24" fill="none">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+    );
+  }
+  if (status === "available") {
+    return (
+      <svg className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+    );
+  }
+  if (status === "taken" || status === "invalid") {
+    return (
+      <svg className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    );
+  }
+  return null;
+}
+
 const inputBase =
-  "w-full rounded-xl border py-3 pl-11 pr-4 text-sm outline-none transition-all duration-200 focus:ring-2 placeholder-zinc-400 dark:placeholder-zinc-600";
+  "w-full rounded-xl border py-3 pl-11 pr-10 text-sm outline-none transition-all duration-200 focus:ring-2 placeholder-zinc-400 dark:placeholder-zinc-600";
 
 const inputNormal =
   "border-zinc-200 bg-white focus:border-amber-500/50 focus:ring-amber-500/20 hover:border-zinc-300 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-zinc-100 focus:dark:border-amber-500/50 focus:dark:ring-amber-500/20 hover:dark:border-white/[0.12]";
@@ -68,8 +130,42 @@ const inputNormal =
 const inputError =
   "border-red-400/60 bg-red-50/50 focus:border-red-500/60 focus:ring-red-500/20 dark:border-red-500/40 dark:bg-red-500/5 dark:text-zinc-100 focus:dark:border-red-500/60 focus:dark:ring-red-500/20";
 
+const inputOk =
+  "border-emerald-400/60 bg-emerald-50/40 focus:border-emerald-500/60 focus:ring-emerald-500/20 dark:border-emerald-500/40 dark:bg-emerald-500/5 dark:text-zinc-100 focus:dark:border-emerald-500/60 focus:dark:ring-emerald-500/20";
+
 export default function RegisterForm() {
   const [state, formAction] = useActionState(registerEntry, initialState);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const emailStatus = useAvailabilityCheck("email", email);
+  const phoneStatus = useAvailabilityCheck("phone", phone);
+
+  const emailError =
+    emailStatus === "invalid"
+      ? "Enter a valid email address."
+      : emailStatus === "taken"
+        ? "This email is already registered."
+        : emailStatus === "idle"
+          ? state.fieldErrors?.email
+          : undefined;
+
+  const phoneError =
+    phoneStatus === "invalid"
+      ? "Enter a valid phone number."
+      : phoneStatus === "taken"
+        ? "This phone number is already registered."
+        : phoneStatus === "idle"
+          ? state.fieldErrors?.phone
+          : undefined;
+
+  const submitDisabled =
+    emailStatus === "taken" ||
+    emailStatus === "invalid" ||
+    emailStatus === "checking" ||
+    phoneStatus === "taken" ||
+    phoneStatus === "invalid" ||
+    phoneStatus === "checking";
 
   if (state.status === "success") {
     return (
@@ -133,7 +229,7 @@ export default function RegisterForm() {
             required
             autoComplete="name"
             placeholder="Your full name"
-            className={`${inputBase} ${state.fieldErrors?.name ? inputError : inputNormal}`}
+            className={`${inputBase} pr-4 ${state.fieldErrors?.name ? inputError : inputNormal}`}
           />
         </div>
         {state.fieldErrors?.name && (
@@ -159,15 +255,29 @@ export default function RegisterForm() {
             required
             autoComplete="email"
             placeholder="you@example.com"
-            className={`${inputBase} ${state.fieldErrors?.email ? inputError : inputNormal}`}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={`${inputBase} ${
+              emailError ? inputError : emailStatus === "available" ? inputOk : inputNormal
+            }`}
           />
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5">
+            <StatusIndicator status={emailStatus} />
+          </div>
         </div>
-        {state.fieldErrors?.email && (
+        {emailError ? (
           <p className="mt-1.5 flex items-center gap-1 text-xs text-red-500 dark:text-red-400">
             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" /></svg>
-            {state.fieldErrors.email}
+            {emailError}
           </p>
-        )}
+        ) : emailStatus === "available" ? (
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+            Available
+          </p>
+        ) : emailStatus === "checking" ? (
+          <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">Checking availability...</p>
+        ) : null}
       </div>
 
       <div className="group/field">
@@ -185,18 +295,32 @@ export default function RegisterForm() {
             required
             autoComplete="tel"
             placeholder="+94 7X XXX XXXX"
-            className={`${inputBase} ${state.fieldErrors?.phone ? inputError : inputNormal}`}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className={`${inputBase} ${
+              phoneError ? inputError : phoneStatus === "available" ? inputOk : inputNormal
+            }`}
           />
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5">
+            <StatusIndicator status={phoneStatus} />
+          </div>
         </div>
-        {state.fieldErrors?.phone && (
+        {phoneError ? (
           <p className="mt-1.5 flex items-center gap-1 text-xs text-red-500 dark:text-red-400">
             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" /></svg>
-            {state.fieldErrors.phone}
+            {phoneError}
           </p>
-        )}
+        ) : phoneStatus === "available" ? (
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+            Available
+          </p>
+        ) : phoneStatus === "checking" ? (
+          <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">Checking availability...</p>
+        ) : null}
       </div>
 
-      <SubmitButton />
+      <SubmitButton disabled={submitDisabled} />
 
       <p className="text-center text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-600">
         One entry per person. Duplicate entries will not be accepted.
