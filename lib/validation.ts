@@ -1,5 +1,5 @@
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const PHONE_RE = /^[0-9+\-\s()]{7,20}$/;
+export const PHONE_RE = /^07\d{8}$/;
 
 export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
