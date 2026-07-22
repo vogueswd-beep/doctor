@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { registerEntry, type RegisterState } from "./actions";
@@ -72,24 +73,33 @@ export default function RegisterForm() {
 
   if (state.status === "success") {
     return (
-      <div className="fade-in rounded-2xl border border-amber-200 bg-white p-10 text-center shadow-2xl shadow-amber-900/5 dark:border-amber-500/20 dark:bg-gradient-to-br dark:from-zinc-900/80 dark:to-zinc-950/80 dark:shadow-amber-900/10 backdrop-blur-xl">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 to-yellow-100 ring-1 ring-amber-200 success-pulse dark:from-amber-500/20 dark:to-yellow-600/20 dark:ring-amber-500/30">
-          <svg
-            className="h-8 w-8 text-amber-600 dark:text-amber-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
+      <div className="fade-in overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl shadow-amber-900/5 dark:border-amber-500/20 dark:bg-gradient-to-br dark:from-zinc-900/80 dark:to-zinc-950/80 dark:shadow-amber-900/10 backdrop-blur-xl">
+        <Image
+          src="/imges/3.png"
+          alt="Thank you - your presence will make this occasion even more memorable"
+          width={2400}
+          height={600}
+          className="h-auto w-full"
+        />
+        <div className="p-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 to-yellow-100 ring-1 ring-amber-200 success-pulse dark:from-amber-500/20 dark:to-yellow-600/20 dark:ring-amber-500/30">
+            <svg
+              className="h-7 w-7 text-amber-600 dark:text-amber-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-amber-700 dark:text-amber-300">
+            You&apos;re In!
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{state.message}</p>
+          <div className="mx-auto mt-6 h-px w-20 bg-gradient-to-r from-transparent via-amber-300/40 to-transparent dark:via-amber-500/40" />
+          <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-500">Good luck! We&apos;ll be in touch.</p>
         </div>
-        <h2 className="text-2xl font-bold tracking-tight text-amber-700 dark:text-amber-300">
-          You&apos;re In!
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{state.message}</p>
-        <div className="mx-auto mt-6 h-px w-20 bg-gradient-to-r from-transparent via-amber-300/40 to-transparent dark:via-amber-500/40" />
-        <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-500">Good luck! We&apos;ll be in touch.</p>
       </div>
     );
   }

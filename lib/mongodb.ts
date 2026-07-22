@@ -10,16 +10,14 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-let clientPromise: Promise<MongoClient>;
-
-if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    global._mongoClientPromise = new MongoClient(uri).connect();
-  }
-  clientPromise = global._mongoClientPromise;
-} else {
-  clientPromise = new MongoClient(uri).connect();
+// Cache the connection across invocations (not just in dev). Serverless
+// platforms like Vercel reuse warm execution contexts between requests, so
+// creating a new MongoClient per-request opens far more TLS connections
+// than Atlas expects and can cause the connections to be dropped.
+if (!global._mongoClientPromise) {
+  global._mongoClientPromise = new MongoClient(uri).connect();
 }
+const clientPromise: Promise<MongoClient> = global._mongoClientPromise;
 
 export default clientPromise;
 
