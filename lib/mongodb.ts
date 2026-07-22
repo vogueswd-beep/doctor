@@ -1,0 +1,98 @@
+import { MongoClient } from "mongodb";
+
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  throw new Error("Missing MONGODB_URI environment variable");
+}
+
+declare global {
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
+}
+
+let clientPromise: Promise<MongoClient>;
+
+if (process.env.NODE_ENV === "development") {
+  if (!global._mongoClientPromise) {
+    global._mongoClientPromise = new MongoClient(uri).connect();
+  }
+  clientPromise = global._mongoClientPromise;
+} else {
+  clientPromise = new MongoClient(uri).connect();
+}
+
+export default clientPromise;
+
+export const DB_NAME = process.env.MONGODB_DB || "vogue_jewellers";
+export const ENTRIES_COLLECTION = "giveaway_entries";
+
+let indexesEnsured = false;
+
+export async function ensureEntryIndexes() {
+  if (indexesEnsured) return;
+  const client = await clientPromise;
+  const collection = client.db(DB_NAME).collection(ENTRIES_COLLECTION);
+  await Promise.all([
+    collection.createIndex({ email: 1 }, { unique: true }),
+    collection.createIndex({ phone: 1 }, { unique: true }),
+  ]);
+  indexesEnsured = true;
+}
+
+export type Entry = {
+  _id: unknown;
+  name: string;
+  email: string;
+  phone: string;
+  createdAt: Date;
+};
+
+export type EntryFilters = {
+  q?: string;
+  from?: string;
+  to?: string;
+};
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function buildEntryQuery(filters: EntryFilters) {
+  const query: Record<string, unknown> = {};
+  const and: Record<string, unknown>[] = [];
+
+  if (filters.q?.trim()) {
+    const pattern = new RegExp(escapeRegex(filters.q.trim()), "i");
+    and.push({
+      $or: [{ name: pattern }, { email: pattern }, { phone: pattern }],
+    });
+  }
+
+  const createdAt: Record<string, Date> = {};
+  if (filters.from) {
+    const from = new Date(filters.from);
+    if (!Number.isNaN(from.getTime())) createdAt.$gte = from;
+  }
+  if (filters.to) {
+    const to = new Date(filters.to);
+    if (!Number.isNaN(to.getTime())) {
+      to.setHours(23, 59, 59, 999);
+      createdAt.$lte = to;
+    }
+  }
+  if (Object.keys(createdAt).length > 0) and.push({ createdAt });
+
+  if (and.length > 0) query.$and = and;
+  return query;
+}
+
+export async function getEntries(filters: EntryFilters) {
+  const client = await clientPromise;
+  const collection = client
+    .db(DB_NAME)
+    .collection<Entry>(ENTRIES_COLLECTION);
+  return collection
+    .find(buildEntryQuery(filters))
+    .sort({ createdAt: -1 })
+    .toArray();
+}
