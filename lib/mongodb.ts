@@ -42,7 +42,7 @@ export type Entry = {
   name: string;
   email: string;
   phone: string;
-  createdAt: Date;
+  createdAt: string;
 };
 
 export type EntryFilters = {
