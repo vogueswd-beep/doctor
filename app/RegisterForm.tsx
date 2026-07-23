@@ -289,6 +289,43 @@ export default function RegisterForm() {
         </div>
       )}
 
+      {/* Role */}
+      <div className="group/field">
+        <label htmlFor="role" className="mb-1.5 block text-[13px] font-medium text-zinc-500 transition-colors duration-200 group-focus-within/field:text-amber-600 dark:text-zinc-400 dark:group-focus-within/field:text-amber-400">
+          Attendee Type <span className="text-amber-500">*</span>
+        </label>
+        <div className="relative">
+          <select
+            id="role" name="role" required defaultValue=""
+            className={`w-full appearance-none rounded-xl border bg-white py-3 pl-4 pr-10 text-sm outline-none transition-all duration-300 focus:ring-2 dark:bg-zinc-950 dark:text-zinc-100 ${
+              state.fieldErrors?.role
+                ? "border-red-300 bg-red-50/50 text-zinc-900 focus:border-red-400 focus:ring-red-500/20 dark:border-red-500/40 dark:bg-red-500/5"
+                : "border-zinc-200 text-zinc-900 hover:border-zinc-300 focus:border-amber-500 focus:ring-amber-500/20 dark:border-white/[0.08] dark:hover:border-white/[0.14]"
+            }`}
+          >
+            <option value="" disabled>
+              Select your attendee type
+            </option>
+            {ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5">
+            <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </div>
+        {state.fieldErrors?.role && (
+          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-500 dark:text-red-400">
+            <svg className="h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" /></svg>
+            {state.fieldErrors.role}
+          </p>
+        )}
+      </div>
+
       {/* Name */}
       <div className="group/field">
         <label htmlFor="name" className="mb-1.5 block text-[13px] font-medium text-zinc-500 transition-colors duration-200 group-focus-within/field:text-amber-600 dark:text-zinc-400 dark:group-focus-within/field:text-amber-400">
@@ -414,43 +451,6 @@ export default function RegisterForm() {
         ) : phoneStatus === "checking" ? (
           <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">Checking availability...</p>
         ) : null}
-      </div>
-
-      {/* Role */}
-      <div className="group/field">
-        <label htmlFor="role" className="mb-1.5 block text-[13px] font-medium text-zinc-500 transition-colors duration-200 group-focus-within/field:text-amber-600 dark:text-zinc-400 dark:group-focus-within/field:text-amber-400">
-          Attendee Type <span className="text-amber-500">*</span>
-        </label>
-        <div className="relative">
-          <select
-            id="role" name="role" required defaultValue=""
-            className={`w-full appearance-none rounded-xl border bg-white py-3 pl-4 pr-10 text-sm outline-none transition-all duration-300 focus:ring-2 dark:bg-zinc-950 dark:text-zinc-100 ${
-              state.fieldErrors?.role
-                ? "border-red-300 bg-red-50/50 text-zinc-900 focus:border-red-400 focus:ring-red-500/20 dark:border-red-500/40 dark:bg-red-500/5"
-                : "border-zinc-200 text-zinc-900 hover:border-zinc-300 focus:border-amber-500 focus:ring-amber-500/20 dark:border-white/[0.08] dark:hover:border-white/[0.14]"
-            }`}
-          >
-            <option value="" disabled>
-              Select your attendee type
-            </option>
-            {ROLES.map((role) => (
-              <option key={role} value={role}>
-                {role}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5">
-            <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-          </div>
-        </div>
-        {state.fieldErrors?.role && (
-          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-500 dark:text-red-400">
-            <svg className="h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" /></svg>
-            {state.fieldErrors.role}
-          </p>
-        )}
       </div>
 
       <SubmitButton disabled={submitDisabled} />
