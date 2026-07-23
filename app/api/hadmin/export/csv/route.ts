@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
-import { getEntries, type EntryFilters } from "@/lib/mongodb";
+import { formatCreatedAt, getEntries, type EntryFilters } from "@/lib/mongodb";
 
 function csvEscape(value: string) {
   if (/[",\n]/.test(value)) {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     entry.name,
     entry.email,
     entry.phone,
-    new Date(entry.createdAt).toISOString(),
+    formatCreatedAt(entry.createdAt),
   ]);
 
   const csv = [header, ...rows]

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
-import { getEntries, type EntryFilters } from "@/lib/mongodb";
+import { formatCreatedAt, getEntries, type EntryFilters } from "@/lib/mongodb";
 
 const PAGE_WIDTH = 595.28; // A4 portrait, points
 const PAGE_HEIGHT = 841.89;
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       truncate(entry.name, 24),
       truncate(entry.email, 30),
       entry.phone,
-      new Date(entry.createdAt).toLocaleDateString(),
+      formatCreatedAt(entry.createdAt),
     ];
     values.forEach((value, i) => {
       page.drawText(value, { x, y, size: 9, font, color: dark });

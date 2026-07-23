@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
-import { getEntries, type EntryFilters } from "@/lib/mongodb";
+import { formatCreatedAt, getEntries, type EntryFilters } from "@/lib/mongodb";
 import { logoutAction } from "./actions";
 
 export const metadata = {
@@ -160,7 +160,7 @@ export default async function HadminPage({
                     <td className="px-4 py-3 text-zinc-300">{entry.email}</td>
                     <td className="px-4 py-3 text-zinc-300">{entry.phone}</td>
                     <td className="px-4 py-3 text-zinc-400">
-                      {entry.createdAt}
+                      {formatCreatedAt(entry.createdAt)}
                     </td>
                   </tr>
                 ))
