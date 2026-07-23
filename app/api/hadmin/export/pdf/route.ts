@@ -8,19 +8,22 @@ const PAGE_HEIGHT = 841.89;
 const MARGIN = 40;
 const ROW_HEIGHT = 22;
 const COLUMNS = [
-  { label: "Name", width: 140 },
-  { label: "Email", width: 170 },
-  { label: "Phone", width: 110 },
-  { label: "Registered At", width: 95 },
+  { label: "Name", width: 110 },
+  { label: "Email", width: 150 },
+  { label: "Phone", width: 90 },
+  { label: "Role", width: 80 },
+  { label: "Registered At", width: 85 },
 ] as const;
 
-function truncate(text: string, maxChars: number) {
-  return text.length > maxChars ? `${text.slice(0, maxChars - 1)}…` : text;
+function truncate(text: string | null | undefined, maxChars: number) {
+  const value = text ?? "";
+  return value.length > maxChars ? `${value.slice(0, maxChars - 1)}…` : value;
 }
 
 // Helvetica only supports WinAnsi; replace anything else so drawText never throws.
-function pdfSafe(text: string) {
-  return text.replace(/[^\x20-\x7e¡-ÿ…]/g, "?");
+// Some entries have null/missing fields (e.g. phone), so guard against that too.
+function pdfSafe(text: string | null | undefined) {
+  return (text ?? "").replace(/[^\x20-\x7e¡-ÿ…]/g, "?");
 }
 
 export async function GET(request: NextRequest) {
@@ -98,9 +101,10 @@ export async function GET(request: NextRequest) {
     ensureSpace();
     let x = MARGIN;
     const values = [
-      truncate(entry.name, 24),
-      truncate(entry.email, 30),
+      truncate(entry.name, 18),
+      truncate(entry.email, 26),
       entry.phone,
+      truncate(entry.role || "N/A", 14),
       formatCreatedAt(entry.createdAt),
     ];
     values.forEach((value, i) => {

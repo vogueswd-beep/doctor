@@ -6,12 +6,12 @@ import clientPromise, {
   ensureEntryIndexes,
   formatCreatedAt,
 } from "@/lib/mongodb";
-import { EMAIL_RE, PHONE_RE, normalizePhone } from "@/lib/validation";
+import { EMAIL_RE, PHONE_RE, ROLES, normalizePhone, type Role } from "@/lib/validation";
 
 export type RegisterState = {
   status: "idle" | "success" | "error";
   message: string;
-  fieldErrors?: Partial<Record<"name" | "email" | "phone", string>>;
+  fieldErrors?: Partial<Record<"name" | "email" | "phone" | "role", string>>;
 };
 
 export async function registerEntry(
@@ -23,6 +23,7 @@ export async function registerEntry(
     .trim()
     .toLowerCase();
   const phone = String(formData.get("phone") || "").trim();
+  const role = String(formData.get("role") || "").trim();
 
   const fieldErrors: RegisterState["fieldErrors"] = {};
 
@@ -31,6 +32,8 @@ export async function registerEntry(
   else if (!EMAIL_RE.test(email)) fieldErrors.email = "Enter a valid email address.";
   if (!phone) fieldErrors.phone = "Phone number is required.";
   else if (!PHONE_RE.test(phone)) fieldErrors.phone = "Enter a valid phone number.";
+  if (!role) fieldErrors.role = "Please select a role.";
+  else if (!ROLES.includes(role as Role)) fieldErrors.role = "Select a valid role.";
 
   if (Object.keys(fieldErrors).length > 0) {
     return { status: "error", message: "Please fix the errors below.", fieldErrors };
@@ -63,6 +66,7 @@ export async function registerEntry(
       name,
       email,
       phone: normalizedPhone,
+      role: role as Role,
       createdAt: formatCreatedAt(new Date()),
     });
 

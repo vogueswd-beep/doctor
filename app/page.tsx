@@ -46,7 +46,7 @@ export default function Home() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
                 </span>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-300">
+                <span className="gold-shimmer text-[11px] font-semibold uppercase tracking-[0.25em]">
                   Exclusive Giveaway
                 </span>
               </div>
@@ -59,7 +59,7 @@ export default function Home() {
                   Register to Win a 22KT Gold Pendant
                 </h1>
                 <div className="mt-5 h-px w-14 bg-gradient-to-r from-amber-400/80 to-transparent" />
-                <p className="mt-5 max-w-sm text-[13px] leading-relaxed text-zinc-300/90">
+                <p className="mt-5 max-w-sm text-[13px] font-medium leading-relaxed text-white/90">
                   With compliments from Vogue Jewellers, one valued guest will
                   receive a thoughtfully selected gift as a gesture of our
                   appreciation. Kindly share your details to participate and
@@ -102,7 +102,7 @@ export default function Home() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 dark:bg-amber-400" />
                   </span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-700 dark:text-amber-500">
+                  <span className="gold-shimmer text-[11px] font-semibold uppercase tracking-[0.25em]">
                     Exclusive Giveaway
                   </span>
                 </div>

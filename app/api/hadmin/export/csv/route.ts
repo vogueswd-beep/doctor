@@ -23,11 +23,12 @@ export async function GET(request: NextRequest) {
 
   const entries = await getEntries(filters);
 
-  const header = ["Name", "Email", "Phone", "Registered At"];
+  const header = ["Name", "Email", "Phone", "Role", "Registered At"];
   const rows = entries.map((entry) => [
     entry.name,
     entry.email,
     entry.phone,
+    entry.role || "N/A",
     formatCreatedAt(entry.createdAt),
   ]);
 

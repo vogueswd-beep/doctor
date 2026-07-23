@@ -121,14 +121,12 @@ export default async function HadminPage({
             >
               Download CSV
             </a>
-            {/* PDF export temporarily hidden during live event
             <a
               href={buildExportHref("/api/hadmin/export/pdf", filters)}
               className="rounded-lg border border-amber-500/40 px-4 py-2 text-sm font-medium text-amber-400 transition-colors hover:bg-amber-500/10"
             >
               Download PDF
             </a>
-            */}
           </div>
         </div>
 
@@ -139,6 +137,7 @@ export default async function HadminPage({
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Phone</th>
+                <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3">Registered At</th>
               </tr>
             </thead>
@@ -146,7 +145,7 @@ export default async function HadminPage({
               {entries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-4 py-8 text-center text-zinc-500"
                   >
                     No entries match your filters.
@@ -161,6 +160,7 @@ export default async function HadminPage({
                     <td className="px-4 py-3 text-zinc-100">{entry.name}</td>
                     <td className="px-4 py-3 text-zinc-300">{entry.email}</td>
                     <td className="px-4 py-3 text-zinc-300">{entry.phone}</td>
+                    <td className="px-4 py-3 text-zinc-300">{entry.role || "N/A"}</td>
                     <td className="px-4 py-3 text-zinc-400">
                       {formatCreatedAt(entry.createdAt)}
                     </td>

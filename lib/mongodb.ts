@@ -42,6 +42,7 @@ export type Entry = {
   name: string;
   email: string;
   phone: string;
+  role?: string;
   createdAt?: string | Date;
 };
 
@@ -106,13 +107,28 @@ export function buildEntryQuery(filters: EntryFilters) {
   return query;
 }
 
+const CREATED_AT_STRING_RE = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*(am|pm)$/i;
+
+// createdAt is a Date on old entries and a pre-formatted "dd/mm/yyyy hh:mm am/pm"
+// string on newer ones (see formatCreatedAt). Mongo's sort compares by BSON type
+// before value, so the two shapes don't interleave correctly by real time —
+// parse both into a timestamp and sort here instead.
+function entryTimestamp(value: string | Date | null | undefined): number {
+  if (value == null) return -Infinity;
+  if (value instanceof Date) return value.getTime();
+  const match = CREATED_AT_STRING_RE.exec(value.replace(/[  ]/g, " "));
+  if (!match) return -Infinity;
+  const [, day, month, year, hourStr, minute, meridiem] = match;
+  let hour = Number(hourStr) % 12;
+  if (meridiem.toLowerCase() === "pm") hour += 12;
+  return new Date(Number(year), Number(month) - 1, Number(day), hour, Number(minute)).getTime();
+}
+
 export async function getEntries(filters: EntryFilters) {
   const client = await clientPromise;
   const collection = client
     .db(DB_NAME)
     .collection<Entry>(ENTRIES_COLLECTION);
-  return collection
-    .find(buildEntryQuery(filters))
-    .sort({ createdAt: -1 })
-    .toArray();
+  const entries = await collection.find(buildEntryQuery(filters)).toArray();
+  return entries.sort((a, b) => entryTimestamp(b.createdAt) - entryTimestamp(a.createdAt));
 }
