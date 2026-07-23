@@ -4,6 +4,7 @@ import clientPromise, {
   DB_NAME,
   ENTRIES_COLLECTION,
   ensureEntryIndexes,
+  formatCreatedAt,
 } from "@/lib/mongodb";
 import { EMAIL_RE, PHONE_RE, normalizePhone } from "@/lib/validation";
 
@@ -62,15 +63,7 @@ export async function registerEntry(
       name,
       email,
       phone: normalizedPhone,
-      createdAt: new Date().toLocaleString("en-GB", {
-        timeZone: "Asia/Colombo",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }).replace(",", ""),
+      createdAt: formatCreatedAt(new Date()),
     });
 
     return {

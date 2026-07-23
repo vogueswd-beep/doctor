@@ -18,6 +18,11 @@ function truncate(text: string, maxChars: number) {
   return text.length > maxChars ? `${text.slice(0, maxChars - 1)}…` : text;
 }
 
+// Helvetica only supports WinAnsi; replace anything else so drawText never throws.
+function pdfSafe(text: string) {
+  return text.replace(/[^\x20-\x7e¡-ÿ…]/g, "?");
+}
+
 export async function GET(request: NextRequest) {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,7 +57,7 @@ export async function GET(request: NextRequest) {
       color: dark,
     });
     y -= 18;
-    page.drawText(`Generated ${new Date().toLocaleString()} - ${entries.length} entries`, {
+    page.drawText(pdfSafe(`Generated ${formatCreatedAt(new Date())} - ${entries.length} entries`), {
       x: MARGIN,
       y,
       size: 9,
@@ -99,7 +104,7 @@ export async function GET(request: NextRequest) {
       formatCreatedAt(entry.createdAt),
     ];
     values.forEach((value, i) => {
-      page.drawText(value, { x, y, size: 9, font, color: dark });
+      page.drawText(pdfSafe(value), { x, y, size: 9, font, color: dark });
       x += COLUMNS[i].width;
     });
     y -= ROW_HEIGHT;

@@ -48,20 +48,22 @@ export type Entry = {
 // Old entries stored createdAt as a Date; new ones as a pre-formatted
 // Sri Lanka time string (dd/mm/yyyy hh:mm am/pm).
 export function formatCreatedAt(value: string | Date): string {
-  if (value instanceof Date) {
-    return value
-      .toLocaleString("en-GB", {
-        timeZone: "Asia/Colombo",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      })
-      .replace(",", "");
-  }
-  return value;
+  const formatted =
+    value instanceof Date
+      ? value
+          .toLocaleString("en-GB", {
+            timeZone: "Asia/Colombo",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .replace(",", "")
+      : value;
+  // Some ICU versions emit U+202F/U+00A0 before am/pm; PDF fonts can't encode them.
+  return formatted.replace(/[\u202f\u00a0]/g, " ");
 }
 
 export type EntryFilters = {
