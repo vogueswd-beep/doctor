@@ -62,7 +62,15 @@ export async function registerEntry(
       name,
       email,
       phone: normalizedPhone,
-      createdAt: new Date(),
+      createdAt: new Date().toLocaleString("en-GB", {
+        timeZone: "Asia/Colombo",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }).replace(",", ""),
     });
 
     return {
