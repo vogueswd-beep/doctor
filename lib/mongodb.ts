@@ -80,30 +80,16 @@ function escapeRegex(value: string) {
 
 export function buildEntryQuery(filters: EntryFilters) {
   const query: Record<string, unknown> = {};
-  const and: Record<string, unknown>[] = [];
 
   if (filters.q?.trim()) {
     const pattern = new RegExp(escapeRegex(filters.q.trim()), "i");
-    and.push({
-      $or: [{ name: pattern }, { email: pattern }, { phone: pattern }],
-    });
+    query.$or = [{ name: pattern }, { email: pattern }, { phone: pattern }];
   }
 
-  const createdAt: Record<string, Date> = {};
-  if (filters.from) {
-    const from = new Date(filters.from);
-    if (!Number.isNaN(from.getTime())) createdAt.$gte = from;
-  }
-  if (filters.to) {
-    const to = new Date(filters.to);
-    if (!Number.isNaN(to.getTime())) {
-      to.setHours(23, 59, 59, 999);
-      createdAt.$lte = to;
-    }
-  }
-  if (Object.keys(createdAt).length > 0) and.push({ createdAt });
-
-  if (and.length > 0) query.$and = and;
+  // Date-range filtering happens after fetch (see getEntries) because
+  // createdAt is a mix of Date objects (old entries) and pre-formatted
+  // "dd/mm/yyyy hh:mm am/pm" strings (new entries) — a Mongo $gte/$lte
+  // query against Date values never matches the string-typed field.
   return query;
 }
 
@@ -129,6 +115,21 @@ export async function getEntries(filters: EntryFilters) {
   const collection = client
     .db(DB_NAME)
     .collection<Entry>(ENTRIES_COLLECTION);
-  const entries = await collection.find(buildEntryQuery(filters)).toArray();
+  let entries = await collection.find(buildEntryQuery(filters)).toArray();
+
+  const fromTs = filters.from ? new Date(filters.from).getTime() : undefined;
+  let toTs: number | undefined;
+  if (filters.to) {
+    const to = new Date(filters.to);
+    to.setHours(23, 59, 59, 999);
+    toTs = to.getTime();
+  }
+  if (fromTs !== undefined && !Number.isNaN(fromTs)) {
+    entries = entries.filter((e) => entryTimestamp(e.createdAt) >= fromTs);
+  }
+  if (toTs !== undefined && !Number.isNaN(toTs)) {
+    entries = entries.filter((e) => entryTimestamp(e.createdAt) <= toTs);
+  }
+
   return entries.sort((a, b) => entryTimestamp(b.createdAt) - entryTimestamp(a.createdAt));
 }
