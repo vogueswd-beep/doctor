@@ -42,12 +42,13 @@ export type Entry = {
   name: string;
   email: string;
   phone: string;
-  createdAt: string | Date;
+  createdAt?: string | Date;
 };
 
 // Old entries stored createdAt as a Date; new ones as a pre-formatted
 // Sri Lanka time string (dd/mm/yyyy hh:mm am/pm).
-export function formatCreatedAt(value: string | Date): string {
+export function formatCreatedAt(value: string | Date | null | undefined): string {
+  if (value == null) return "-";
   const formatted =
     value instanceof Date
       ? value
