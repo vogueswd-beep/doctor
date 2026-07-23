@@ -160,7 +160,7 @@ export default async function HadminPage({
                     <td className="px-4 py-3 text-zinc-300">{entry.email}</td>
                     <td className="px-4 py-3 text-zinc-300">{entry.phone}</td>
                     <td className="px-4 py-3 text-zinc-400">
-                      {new Date(entry.createdAt).toLocaleString()}
+                      {entry.createdAt}
                     </td>
                   </tr>
                 ))
